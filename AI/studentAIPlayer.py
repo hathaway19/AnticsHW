@@ -29,7 +29,7 @@ class AIPlayer(Player):
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        super(AIPlayer,self).__init__(inputPlayerId, "AI Template (not implemented)")
+        super(AIPlayer,self).__init__(inputPlayerId, "Drone_AI")
     
     ##
     #getPlacement
@@ -47,7 +47,7 @@ class AIPlayer(Player):
     #complete the setup phases.
     #
     #Parameters:
-    #   currentState - The current state of the game at the time the Game is 
+    #   currentState - The current state of the game at the time the Game is
     #       requesting a placement from the player.(GameState)
     #
     #Return: If setup phase 1: list of eleven 2-tuples of ints -> [(x1,y1), (x2,y2),…,(x10,y10)]
