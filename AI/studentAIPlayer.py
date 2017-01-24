@@ -129,8 +129,71 @@ class AIPlayer(Player):
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     ##
     def getMove(self, currentState):
+        # Useful pointers
         myInv = getCurrPlayerInventory(currentState)
         me = currentState.whoseTurn
+
+        # the first time this method is called, the food and tunnel locations
+        # need to be recorded in their respective instance variables
+        if (self.myTunnel == None):
+            self.myTunnel = getConstrList(currentState, me, (TUNNEL,))[0]
+        if (self.myFood == None):
+            foods = getConstrList(currentState, None, (FOOD,))
+            self.myFood = foods[0]
+            # find the food closest to the tunnel
+            bestDistSoFar = 1000  # i.e., infinity
+            for food in foods:
+                dist = stepsToReach(currentState, self.myTunnel.coords, food.coords)
+                if (dist < bestDistSoFar):
+                    self.myFood = food
+                    bestDistSoFar = dist
+
+        # if I don't have a worker, give up.  QQ
+        numAnts = len(myInv.ants)
+        if (numAnts == 1):
+            return Move(END, None, None)
+
+        # if the worker has already moved, we're done
+        myWorker = getAntList(currentState, me, (WORKER,))[0]
+        if (myWorker.hasMoved):
+            return Move(END, None, None)
+
+        # if the queen is on the anthill move her
+        if (myInv.getQueen().coords == myInv.getAnthill().coords):
+            return Move(MOVE_ANT, [myInv.getQueen().coords, (1, 0)], None)
+
+        # if I have the foos and the anthill is unoccupied then
+        # make a drone
+        if (myInv.foodCount > 2):
+            if (getAntAt(currentState, myInv.getAnthill().coords) is None):
+                return Move(BUILD, [myInv.getAnthill().coords], DRONE)
+
+        # Move all my drones towards the enemy
+        myDrones = getAntList(currentState, me, (DRONE,))
+        for drone in myDrones:
+            if not (drone.hasMoved):
+                droneX = drone.coords[0]
+                droneY = drone.coords[1]
+                if (droneY < 9):
+                    droneY += 1;
+                else:
+                    droneX += 1;
+                if (droneX, droneY) in listReachableAdjacent(currentState, drone.coords, 3):
+                    return Move(MOVE_ANT, [drone.coords, (droneX, droneY)], None)
+                else:
+                    return Move(MOVE_ANT, [drone.coords], None)
+
+        # if the worker has food, move toward tunnel
+        if (myWorker.carrying):
+            path = createPathToward(currentState, myWorker.coords,
+                                    self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
+            return Move(MOVE_ANT, path, None)
+
+        # if the worker has no food, move toward food
+        else:
+            path = createPathToward(currentState, myWorker.coords,
+                                    self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
+            return Move(MOVE_ANT, path, None)
 
         return None
     
@@ -154,7 +217,7 @@ class AIPlayer(Player):
     #Return: A coordinate that matches one of the entries of enemyLocations. ((int,int))
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
-        return None
+        return enemyLocations[0]  # don't care
         
     ##
     #registerWin
