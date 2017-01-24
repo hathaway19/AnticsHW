@@ -66,13 +66,20 @@ class AIPlayer(Player):
         else:
             enemy = PLAYER_ONE
 
+        # Variable to hold opponent's inventory
         enemyInventory = currentState.inventories[enemy]
+        # Variables to hold opponent's anthill and tunnel coordinates
         enemyAnthillCoords = enemyInventory.constrs[0].coords
         enemyTunnelCoords = enemyInventory.constrs[1].coords
 
+        print "enemy team: ", enemy
+        print "my team: ", self.playerId
+        print "    enemy tunnel coords", enemyTunnelCoords
+        print "    enemy anthill coords", enemyAnthillCoords
+
         if currentState.phase == SETUP_PHASE_1:
-            #Indexes 0-1: Anthill, tunnel
-            #Indexes 2-10: Grass
+            # Indexes 0-1: Anthill, tunnel
+            # Indexes 2-10: Grass
             return [(0,0), (8, 2),
                     (0,2), (1,2), (2,1), (7,3), \
                     (0,3), (1,1), (8,3), \
@@ -82,34 +89,22 @@ class AIPlayer(Player):
             foodLocations = []
 
             for i in range(0, numToPlace):
-                LargestDistanceIndex = [(0,0)]
+                LargestDistanceIndex = [(-1,-1)]
                 LargestDistance = 0
                 foodLocation = None
                 while foodLocation == None:
-                    for i in range(0,10):
+                    for i in range(BOARD_LENGTH):
                         for j in range(6,10):
                             if currentState.board[i][j].constr == None and (i, j) not in foodLocations:
-                                 if approxDist((i,j),(enemyTunnelCoords)) > LargestDistance:
+                                if approxDist((i,j),(enemyTunnelCoords)) > LargestDistance:
+                                    print "  index: ", i,j
+                                    print "    dist from tunnel: ", approxDist((i,j),(enemyTunnelCoords))
                                     LargestDistance = approxDist((i,j),(enemyTunnelCoords))
                                     LargestDistanceIndex = (i,j)
+                    print "Food location picked"
                     foodLocation = LargestDistanceIndex
                 foodLocations.append(foodLocation)
             return foodLocations
-
-            # for i in range(0, numToPlace):
-            #     foodLocation = None
-            #     while foodLocation == None:
-            #         #Choose any x location
-            #         x = random.randint(0, 9)
-            #         #Choose any y location on enemy side of the board
-            #         y = random.randint(6, 9)
-            #         #Set the move if this space is empty
-            #         if currentState.board[x][y].constr == None and (x, y) not in foodLocations:
-            #             foodLocation = (x, y)
-            #             #Just need to make the space non-empty. So I threw whatever I felt like in there.
-            #             currentState.board[x][y].constr == True
-            #     foodLocations.append(foodLocation)
-            # return foodLocations
         else:
             return None
     
@@ -134,6 +129,9 @@ class AIPlayer(Player):
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     ##
     def getMove(self, currentState):
+        myInv = getCurrPlayerInventory(currentState)
+        me = currentState.whoseTurn
+
         return None
     
     ##
