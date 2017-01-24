@@ -61,11 +61,14 @@ class AIPlayer(Player):
         self.myFood = None
         self.myTunnel = None
         if currentState.phase == SETUP_PHASE_1:
-            return [(0,0), (5, 1),
-                    (0,3), (1,2), (2,1), (3,0), \
-                    (0,2), (1,1), (2,0), \
-                    (0,1), (1,0) ];
+            #Indexes 0-1: Anthill, tunnel
+            #Indexes 2-10: Grass
+            return [(0,0), (8, 2),
+                    (0,2), (1,2), (2,1), (7,3), \
+                    (0,3), (1,1), (8,3), \
+                    (0,1), (9,3) ];
         elif currentState.phase == SETUP_PHASE_2:
+            #Enemy's food
             return [(2,2),(1,3)];
         else:
             return None
