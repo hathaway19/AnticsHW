@@ -31,6 +31,9 @@ class AIPlayer(Player):
     def __init__(self, inputPlayerId):
         #Called it a temp name for now
         super(AIPlayer,self).__init__(inputPlayerId, "Drone AI")
+        #Variables to store coordinates of the agent's food and tunnel
+        self.myFood = None
+        self.myTunnel = None
     
     ##
     #getPlacement
@@ -55,7 +58,17 @@ class AIPlayer(Player):
     #       If setup phase 2: list of two 2-tuples of ints -> [(x1,y1), (x2,y2)]
     ##
     def getPlacement(self, currentState):
-       return None
+        self.myFood = None
+        self.myTunnel = None
+        if currentState.phase == SETUP_PHASE_1:
+            return [(0,0), (5, 1),
+                    (0,3), (1,2), (2,1), (3,0), \
+                    (0,2), (1,1), (2,0), \
+                    (0,1), (1,0) ];
+        elif currentState.phase == SETUP_PHASE_2:
+            return [(2,2),(1,3)];
+        else:
+            return None
     
     ##
     #getMove
