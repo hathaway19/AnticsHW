@@ -60,6 +60,17 @@ class AIPlayer(Player):
     def getPlacement(self, currentState):
         self.myFood = None
         self.myTunnel = None
+        AgentInventory = 0
+        enemy = 0
+
+        if(self.playerId == PLAYER_ONE):
+            enemy = PLAYER_TWO
+        else:
+            enemy = PLAYER_ONE
+        enemyInventory = currentState.inventories[enemy]
+        enemyAnthillCoords = enemyInventory.constrs[0].coords
+        enemyTunnelCoords = enemyInventory.constrs[1].coords
+
         if currentState.phase == SETUP_PHASE_1:
             #Indexes 0-1: Anthill, tunnel
             #Indexes 2-10: Grass
@@ -68,8 +79,38 @@ class AIPlayer(Player):
                     (0,3), (1,1), (8,3), \
                     (0,1), (9,3) ];
         elif currentState.phase == SETUP_PHASE_2:
-            #Enemy's food
-            return [(2,2),(1,3)];
+            numToPlace = 2
+            foodLocations = []
+
+            for i in range(0, numToPlace):
+                LargestDistanceIndex = [(0,0)]
+                LargestDistance = 0
+                foodLocation = None
+                while foodLocation == None:
+                    for i in range(0,10):
+                        for j in range(6,10):
+                            if currentState.board[i][j].constr == None and (i, j) not in foodLocations:
+                                 if approxDist((i,j),(enemyTunnelCoords)) > LargestDistance:
+                                    LargestDistance = approxDist((i,j),(enemyTunnelCoords))
+                                    LargestDistanceIndex = (i,j)
+                    foodLocation = LargestDistanceIndex
+                foodLocations.append(foodLocation)
+            return foodLocations
+
+            # for i in range(0, numToPlace):
+            #     foodLocation = None
+            #     while foodLocation == None:
+            #         #Choose any x location
+            #         x = random.randint(0, 9)
+            #         #Choose any y location on enemy side of the board
+            #         y = random.randint(6, 9)
+            #         #Set the move if this space is empty
+            #         if currentState.board[x][y].constr == None and (x, y) not in foodLocations:
+            #             foodLocation = (x, y)
+            #             #Just need to make the space non-empty. So I threw whatever I felt like in there.
+            #             currentState.board[x][y].constr == True
+            #     foodLocations.append(foodLocation)
+            # return foodLocations
         else:
             return None
     
@@ -128,5 +169,5 @@ class AIPlayer(Player):
     #   hasWon - True if the player has won the game, False if the player lost. (Boolean)
     #
     def registerWin(self, hasWon):
-        #method templaste, not implemented
+        #method template, not implemented
         pass
