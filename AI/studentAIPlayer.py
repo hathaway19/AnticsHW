@@ -140,7 +140,7 @@ class AIPlayer(Player):
         if (self.myFood == None):
             foods = getConstrList(currentState, None, (FOOD,))
             self.myFood = foods[0]
-            # find the food closest to the tunnel
+            # find the food closest to the tunnelf
             bestDistSoFar = 1000  # i.e., infinity
             for food in foods:
                 dist = stepsToReach(currentState, self.myTunnel.coords, food.coords)
