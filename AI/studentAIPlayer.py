@@ -60,13 +60,12 @@ class AIPlayer(Player):
     def getPlacement(self, currentState):
         self.myFood = None
         self.myTunnel = None
-        AgentInventory = 0
-        enemy = 0
 
         if(self.playerId == PLAYER_ONE):
             enemy = PLAYER_TWO
         else:
             enemy = PLAYER_ONE
+
         enemyInventory = currentState.inventories[enemy]
         enemyAnthillCoords = enemyInventory.constrs[0].coords
         enemyTunnelCoords = enemyInventory.constrs[1].coords
