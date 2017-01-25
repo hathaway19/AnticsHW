@@ -96,10 +96,11 @@ class AIPlayer(Player):
                     for i in range(BOARD_LENGTH):
                         for j in range(6,10):
                             if currentState.board[i][j].constr == None and (i, j) not in foodLocations:
-                                if approxDist((i,j),(enemyTunnelCoords)) > LargestDistance:
+                                currentDistance = approxDist((i,j),(enemyTunnelCoords)) + approxDist((i,j),(enemyAnthillCoords))
+                                if  currentDistance > LargestDistance:
                                     print "  index: ", i,j
-                                    print "    dist from tunnel: ", approxDist((i,j),(enemyTunnelCoords))
-                                    LargestDistance = approxDist((i,j),(enemyTunnelCoords))
+                                    print "    dist from tunnel: ", currentDistance
+                                    LargestDistance = currentDistance
                                     LargestDistanceIndex = (i,j)
                     print "Food location picked"
                     foodLocation = LargestDistanceIndex
