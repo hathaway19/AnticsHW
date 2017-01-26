@@ -209,7 +209,7 @@ class AIPlayer(Player):
         for worker in myWorkers:
             if not worker.hasMoved:
                 if worker.carrying:
-                    # See if ant closer to anthill or tunnel, move to closest
+                    # See if the ant is closer to anthill or tunnel, move to closest
 
                     if (stepsToReach(currentState,worker.coords,self.myAnthill.coords)
                             < (stepsToReach(currentState,worker.coords,self.myTunnel.coords))):
