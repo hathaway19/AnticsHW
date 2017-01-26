@@ -67,23 +67,12 @@ class AIPlayer(Player):
         self.myTunnel = None
         self.myAnthill = None
 
-        #Finds out which player ID is your opponent
-        if(self.playerId == PLAYER_ONE):
-            enemy = PLAYER_TWO
-        else:
-            enemy = PLAYER_ONE
+        # Finds out which player ID is your opponent
+        enemy = (currentState.whoseTurn + 1) % 2
 
-        # Variable to hold opponent's inventory
-        enemyInventory = currentState.inventories[enemy]
-        # Variables to hold opponent's anthill and tunnel coordinates
-        enemyAnthillCoords = enemyInventory.constrs[0].coords
-        enemyTunnelCoords = enemyInventory.constrs[1].coords
-
-        # ToDo: Get rid of print statements
-        # print "enemy team: ", enemy
-        # print "my team: ", self.playerId
-        # print "    enemy tunnel coords", enemyTunnelCoords
-        # print "    enemy anthill coords", enemyAnthillCoords
+        # Variables to hold coordinates of enemy constructs
+        enemyTunnelCoords = getConstrList(currentState,enemy,(TUNNEL,))[0].coords
+        enemyAnthillCoords = getConstrList(currentState,enemy,(ANTHILL,))[0].coords
 
         # Setup phase for placing anthill, grass, and tunnel (hardcoded in for optimal chance of winning)
         if currentState.phase == SETUP_PHASE_1:
@@ -110,20 +99,16 @@ class AIPlayer(Player):
                             # Only searches locations that haven't already been added or have placements on them
                             if currentState.board[i][j].constr == None and (i, j) not in foodLocations:
                                 # Adds distance from tunnel and anthill
-                                currentDistance = approxDist((i,j),(enemyTunnelCoords)) + approxDist((i,j),(enemyAnthillCoords))
+                                currentDistance = stepsToReach(currentState,(i, j), enemyTunnelCoords) \
+                                                                + stepsToReach(currentState,(i, j),enemyAnthillCoords)
                                 # Keeps largest distance
                                 if  currentDistance > LargestDistance:
-                                    # ToDo: Get rid of print statements
-                                    print "  index: ", i,j
-                                    print "    dist from tunnel: ", currentDistance
                                     # Replaces values for current largest distance
                                     LargestDistance = currentDistance
                                     LargestDistanceIndex = (i,j)
-                    # Todo: Get rid of print statements
-                    print "Food location picked"
                     foodLocation = LargestDistanceIndex
                 foodLocations.append(foodLocation)
-            #Gives coordinates to place food on
+            # Gives coordinates to place food on
             return foodLocations
         # Shouldn't reach this point
         else:
@@ -197,7 +182,7 @@ class AIPlayer(Player):
             #         bestDistToTunnel = distToTunnel
 
 
-        # If all the workers have moved, we're done
+        # If all the workers have moved, we're done (checks to see if last worker has moved)
         lastWorker = getAntList(currentState, me, (WORKER,))[numOfWorkerAnts - 1]
         if (lastWorker.hasMoved):
             return Move(END, None, None)
