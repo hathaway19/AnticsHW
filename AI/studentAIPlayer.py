@@ -30,10 +30,11 @@ class AIPlayer(Player):
     ##
     def __init__(self, inputPlayerId):
         #Called it a temp name for now
-        super(AIPlayer,self).__init__(inputPlayerId, "Drone AI")
-        #Variables to store coordinates of the agent's food and tunnel
+        super(AIPlayer,self).__init__(inputPlayerId, "Drone_AI")
+        #Variables to store coordinates of the agent's food, tunnel, and anthill
         self.myFood = None
         self.myTunnel = None
+        self.myAnthill = None
     
     ##
     #getPlacement
@@ -60,6 +61,7 @@ class AIPlayer(Player):
     def getPlacement(self, currentState):
         self.myFood = None
         self.myTunnel = None
+        self.myAnthill = None
 
         if(self.playerId == PLAYER_ONE):
             enemy = PLAYER_TWO
@@ -134,6 +136,11 @@ class AIPlayer(Player):
         myInv = getCurrPlayerInventory(currentState)
         me = currentState.whoseTurn
 
+        # Variable to hold total number of worker ants
+        numOfWorkerAnts = len(getAntList(currentState, me, (WORKER,)))
+
+        anthillCoords = myInv.getAnthill().coords
+
         # the first time this method is called, the food and tunnel locations
         # need to be recorded in their respective instance variables
         if (self.myTunnel == None):
@@ -141,18 +148,19 @@ class AIPlayer(Player):
         if (self.myFood == None):
             foods = getConstrList(currentState, None, (FOOD,))
             self.myFood = foods[0]
-            # find the food closest to the tunnelf
-            bestDistSoFar = 1000  # i.e., infinity
+            # find the food closest to the tunnel
+            bestDistToTunnel = 1000  # i.e., infinity
+            bestDistToAnthill = 1000
             for food in foods:
-                dist = stepsToReach(currentState, self.myTunnel.coords, food.coords)
-                if (dist < bestDistSoFar):
+                distToAnthill = stepsToReach(currentState, anthillCoords, food.coords)
+                distToTunnel = stepsToReach(currentState, self.myTunnel.coords, food.coords)
+                if (distToTunnel < bestDistToTunnel):
                     self.myFood = food
-                    bestDistSoFar = dist
+                    bestDistToTunnel = distToTunnel
+                if (distToAnthill < bestDistToAnthill):
+                    self.myFood = food
+                    bestDistToAnthill = distToAnthill
 
-        # if I don't have a worker, give up.  QQ
-        numAnts = len(myInv.ants)
-        if (numAnts == 1):
-            return Move(END, None, None)
 
         # if the worker has already moved, we're done
         myWorker = getAntList(currentState, me, (WORKER,))[0]
@@ -165,7 +173,12 @@ class AIPlayer(Player):
 
         # if I have the foos and the anthill is unoccupied then
         # make a drone
-        if (myInv.foodCount > 2):
+        #numOfWorkerAnts = len(getAntList(currentState, me, (WORKER,)))
+        print "number of worker ants: ", numOfWorkerAnts
+        if myInv.foodCount > 0 and numOfWorkerAnts < 2:
+            if (getAntAt(currentState, myInv.getAnthill().coords) is None):
+                return Move(BUILD, [myInv.getAnthill().coords], WORKER)
+        elif (myInv.foodCount > 2):
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
 
