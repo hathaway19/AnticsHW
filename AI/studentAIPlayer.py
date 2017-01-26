@@ -115,7 +115,7 @@ class AIPlayer(Player):
             return None
     
     ##
-    #getMove
+    #getMovee
     #Description: The getMove method corresponds to the play phase of the game 
     #and requests from the player a Move object. All types are symbolic 
     #constants which can be referred to in Constants.py. The move object has a 
