@@ -34,6 +34,7 @@ class AIPlayer(Player):
         #Variables to store coordinates of the agent's food, tunnel, and anthill
         # self.myFoodForTunnel = None
         # self.myFoodForAnthill = None
+        self.myFood = None
         self.myTunnel = None
         self.myAnthill = None
     
@@ -60,6 +61,7 @@ class AIPlayer(Player):
     #       If setup phase 2: list of two 2-tuples of ints -> [(x1,y1), (x2,y2)]
     ##
     def getPlacement(self, currentState):
+        self.myFood = None
         self.myFoodForTunnel = None
         self.myFoodForAnthill = None
         self.myTunnel = None
@@ -166,6 +168,17 @@ class AIPlayer(Player):
             self.myTunnel = getConstrList(currentState, me, (TUNNEL,))[0]
         if self.myAnthill == None:
             self.myAnthill = getConstrList(currentState, me, (ANTHILL,))[0]
+        # Todo: Get rid of this when you place other code for worker ant
+        if (self.myFood == None):
+            foods = getConstrList(currentState, None, (FOOD,))
+            self.myFood = foods[0]
+            # find the food closest to the tunnel
+            bestDistSoFar = 1000  # i.e., infinity
+            for food in foods:
+                dist = stepsToReach(currentState, self.myTunnel.coords, food.coords)
+                if (dist < bestDistSoFar):
+                    self.myFood = food
+                    bestDistSoFar = dist
         #if self.myFoodForTunnel == None or self.myFoodForAnthill == None:
             # foods = getConstrList(currentState, None, (FOOD,))
             # self.myFoodForTunnel = foods[0]
@@ -194,10 +207,11 @@ class AIPlayer(Player):
         if myInv.getQueen().coords == myInv.getAnthill().coords:
             return Move(MOVE_ANT, [myInv.getQueen().coords, (1, 0)], None)
 
+        # todo: implement when worker path code is fixed
         # Creates enough workers to have 2 on the board (if we have food and anthill empty)
-        if myInv.foodCount > 0 and numOfWorkerAnts < 2:
-            if (getAntAt(currentState, myInv.getAnthill().coords) is None):
-                return Move(BUILD, [myInv.getAnthill().coords], WORKER)
+        # if myInv.foodCount > 0 and numOfWorkerAnts < 2:
+        #     if (getAntAt(currentState, myInv.getAnthill().coords) is None):
+        #         return Move(BUILD, [myInv.getAnthill().coords], WORKER)
         #Creates drones if we already have enough workers
         elif (myInv.foodCount > 2):
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
