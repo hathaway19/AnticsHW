@@ -139,6 +139,9 @@ class AIPlayer(Player):
         # Variable to hold total number of worker ants
         numOfWorkerAnts = len(getAntList(currentState, me, (WORKER,)))
 
+        # List of all ally worker ants
+        myWorkers = getAntList(currentState, me, (WORKER,))
+
         anthillCoords = myInv.getAnthill().coords
 
         # the first time this method is called, the food and tunnel locations
@@ -162,22 +165,20 @@ class AIPlayer(Player):
                     bestDistToAnthill = distToAnthill
 
 
-        # if the worker has already moved, we're done
-        myWorker = getAntList(currentState, me, (WORKER,))[0]
-        if (myWorker.hasMoved):
+        # If all the workers have moved, we're done
+        lastWorker = getAntList(currentState, me, (WORKER,))[numOfWorkerAnts - 1]
+        if (lastWorker.hasMoved):
             return Move(END, None, None)
 
         # if the queen is on the anthill move her
         if (myInv.getQueen().coords == myInv.getAnthill().coords):
             return Move(MOVE_ANT, [myInv.getQueen().coords, (1, 0)], None)
 
-        # if I have the foos and the anthill is unoccupied then
-        # make a drone
-        #numOfWorkerAnts = len(getAntList(currentState, me, (WORKER,)))
-        print "number of worker ants: ", numOfWorkerAnts
+        # Creates enough workers to have 2 on the board (if we have food and anthill empty)
         if myInv.foodCount > 0 and numOfWorkerAnts < 2:
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
                 return Move(BUILD, [myInv.getAnthill().coords], WORKER)
+        # Creates drones if we already have enough workers
         elif (myInv.foodCount > 2):
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
@@ -197,17 +198,28 @@ class AIPlayer(Player):
                 else:
                     return Move(MOVE_ANT, [drone.coords], None)
 
-        # if the worker has food, move toward tunnel
-        if (myWorker.carrying):
-            path = createPathToward(currentState, myWorker.coords,
-                                    self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-            return Move(MOVE_ANT, path, None)
+        for worker in myWorkers:
+            if not worker.hasMoved:
+                if worker.carrying:
+                    path = createPathToward(currentState, worker.coords,
+                                            self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
+                    return Move(MOVE_ANT, path, None)
+                else:
+                    path = createPathToward(currentState, worker.coords,
+                                            self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
+                    return Move(MOVE_ANT, path, None)
 
-        # if the worker has no food, move toward food
-        else:
-            path = createPathToward(currentState, myWorker.coords,
-                                    self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
-            return Move(MOVE_ANT, path, None)
+        # # if the worker has food, move toward tunnel
+        # if (myWorker.carrying):
+        #     path = createPathToward(currentState, myWorker.coords,
+        #                             self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
+        #     return Move(MOVE_ANT, path, None)
+        #
+        # # if the worker has no food, move toward food
+        # else:
+        #     path = createPathToward(currentState, myWorker.coords,
+        #                             self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
+        #     return Move(MOVE_ANT, path, None)
 
         return None
     
