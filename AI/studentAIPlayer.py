@@ -291,7 +291,7 @@ class AIPlayer(Player):
     #Return: A coordinate that matches one of the entries of enemyLocations. ((int,int))
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
-        return enemyLocations[0]  # don't care
+        return enemyLocations[random.randint(0, len(enemyLocations) - 1)] #attacks a random enemy
         
     ##
     #registerWin
