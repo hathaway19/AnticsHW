@@ -153,14 +153,13 @@ class AIPlayer(Player):
         # Useful pointers
         myInv = getCurrPlayerInventory(currentState)
         me = currentState.whoseTurn
+        enemy = (currentState.whoseTurn + 1) % 2
 
-        # Variable to hold total number of worker ants
+        # Variable to hold total number of ally worker ants
         numOfWorkerAnts = len(getAntList(currentState, me, (WORKER,)))
 
         # List of all ally worker ants
         myWorkers = getAntList(currentState, me, (WORKER,))
-
-        #anthillCoords = myInv.getAnthill().coords
 
         # the first time this method is called, the food and tunnel locations
         # need to be recorded in their respective instance variables
@@ -213,27 +212,21 @@ class AIPlayer(Player):
         #     if (getAntAt(currentState, myInv.getAnthill().coords) is None):
         #         return Move(BUILD, [myInv.getAnthill().coords], WORKER)
         #Creates drones if we already have enough workers
-        elif (myInv.foodCount > 2):
+        if (myInv.foodCount > 2):
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
 
-        # Move all my drones towards the enemy
+        # Variables to hold ally drones and enemy queen
         myDrones = getAntList(currentState, me, (DRONE,))
+        enemyQueen = getAntList(currentState, enemy, (QUEEN,))[0]
+        # Commands all drones to move to enemy queen coordinates
         for drone in myDrones:
             if not drone.hasMoved:
-                droneX = drone.coords[0]
-                droneY = drone.coords[1]
-                if droneY < 9:
-                    droneY += 1;
-                else:
-                    droneX += 1;
-                if (droneX, droneY) in listReachableAdjacent(currentState, drone.coords, 3):
-                    return Move(MOVE_ANT, [drone.coords, (droneX, droneY)], None)
-                else:
-                    return Move(MOVE_ANT, [drone.coords], None)
+                dronePath = createPathToward(currentState, drone.coords,
+                                             (enemyQueen.coords), UNIT_STATS[DRONE][MOVEMENT])
+                return Move(MOVE_ANT, dronePath, None)
 
-        allMoves = listAllMovementMoves(currentState)
-
+        # Moves all worker ants
         for worker in myWorkers:
             if not worker.hasMoved:
                 if worker.carrying:
@@ -256,7 +249,7 @@ class AIPlayer(Player):
                     for food in foods:
                         distToAnthill = stepsToReach(currentState, self.myAnthill.coords, food.coords)
                         distToTunnel = stepsToReach(currentState, self.myTunnel.coords, food.coords)
-                        myFood = food
+                        #myFood = food
                         bestDist = distToTunnel
                         # if distToAnthill < distToTunnel:
                         #     if distToAnthill < bestDist:
@@ -268,7 +261,7 @@ class AIPlayer(Player):
                         #         bestDist = distToTunnel
 
                     path = createPathToward(currentState, worker.coords,
-                                            myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
+                                            self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
 
         # # if the worker has food, move toward tunnel
@@ -283,7 +276,6 @@ class AIPlayer(Player):
         #                             self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
         #     return Move(MOVE_ANT, path, None)
 
-        return None
     
     ##
     #getAttack
