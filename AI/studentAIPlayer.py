@@ -201,30 +201,32 @@ class AIPlayer(Player):
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
 
-        # Variables to hold ally drones, enemy queen, and enemy workers
+        # Variables to hold list of ally drones
         myDrones = getAntList(currentState, me, (DRONE,))
-        enemyQueen = getAntList(currentState, enemy, (QUEEN,))[0]
-        enemyAnthill = getConstrList(currentState, enemy, (ANTHILL,))[0]
+        # Variables to hold coordinates of enemy queen and anthill coordinates
+        enemyQueenCoords = getAntList(currentState, enemy, (QUEEN,))[0].coords
+        enemyAnthillCoords = getConstrList(currentState, enemy, (ANTHILL,))[0].coords
 
         # Commands all drones to move to enemy queen coordinates
         for drone in myDrones:
             # Only moves the selected drone if it hasn't moved or if it's not on the enemy hill
-            if not drone.hasMoved or (drone.coords == enemyAnthill.coords):
-                distToEnemyAnthill = stepsToReach(currentState, drone.coords, enemyAnthill.coords)
-                distToEnemyQueen = stepsToReach(currentState, drone.coords, enemyQueen.coords)
-                if distToEnemyAnthill < distToEnemyQueen:
-                    dronePath = createPathToward(currentState, drone.coords,
-                                                 enemyAnthill.coords, UNIT_STATS[DRONE][MOVEMENT])
-                else:
-                    dronePath = createPathToward(currentState, drone.coords,
-                                                enemyQueen.coords, UNIT_STATS[DRONE][MOVEMENT])
-                return Move(MOVE_ANT, dronePath, None)
+            if drone.coords != enemyAnthillCoords:
+                if not drone.hasMoved:
+                    # Sends drone to opponent's anthill or queen, depending on which is closer
+                    distToEnemyAnthill = stepsToReach(currentState, drone.coords, enemyAnthillCoords)
+                    distToEnemyQueen = stepsToReach(currentState, drone.coords, enemyQueenCoords)
+                    if distToEnemyAnthill < distToEnemyQueen:
+                        dronePath = createPathToward(currentState, drone.coords,
+                                                     enemyAnthillCoords, UNIT_STATS[DRONE][MOVEMENT])
+                    else:
+                        dronePath = createPathToward(currentState, drone.coords,
+                                                    enemyQueenCoords, UNIT_STATS[DRONE][MOVEMENT])
+                    return Move(MOVE_ANT, dronePath, None)
 
         # Moves all worker ants
         for worker in myWorkers:
             if not worker.hasMoved:
                 if worker.carrying:
-                    # See if the ant is closer to anthill or tunnel, move to closest
                     path = createPathToward(currentState, worker.coords,
                                             self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
                     # if (stepsToReach(currentState,worker.coords,self.myAnthill.coords)
