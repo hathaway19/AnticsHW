@@ -183,7 +183,7 @@ class AIPlayer(Player):
 
 
         # If all the workers have moved, we're done (checks to see if last worker has moved)
-        lastWorker = getAntList(currentState, me, (WORKER,))[numOfWorkerAnts - 1]
+        lastWorker = getAntList(currentState, me,(WORKER,))[numOfWorkerAnts - 1]
         if (lastWorker.hasMoved):
             return Move(END, None, None)
 
@@ -201,14 +201,23 @@ class AIPlayer(Player):
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
 
-        # Variables to hold ally drones and enemy queen
+        # Variables to hold ally drones, enemy queen, and enemy workers
         myDrones = getAntList(currentState, me, (DRONE,))
         enemyQueen = getAntList(currentState, enemy, (QUEEN,))[0]
+        enemyAnthill = getConstrList(currentState, enemy, (ANTHILL,))[0]
+
         # Commands all drones to move to enemy queen coordinates
         for drone in myDrones:
-            if not drone.hasMoved:
-                dronePath = createPathToward(currentState, drone.coords,
-                                             (enemyQueen.coords), UNIT_STATS[DRONE][MOVEMENT])
+            # Only moves the selected drone if it hasn't moved or if it's not on the enemy hill
+            if not drone.hasMoved or (drone.coords == enemyAnthill.coords):
+                distToEnemyAnthill = stepsToReach(currentState, drone.coords, enemyAnthill.coords)
+                distToEnemyQueen = stepsToReach(currentState, drone.coords, enemyQueen.coords)
+                if distToEnemyAnthill < distToEnemyQueen:
+                    dronePath = createPathToward(currentState, drone.coords,
+                                                 enemyAnthill.coords, UNIT_STATS[DRONE][MOVEMENT])
+                else:
+                    dronePath = createPathToward(currentState, drone.coords,
+                                                enemyQueen.coords, UNIT_STATS[DRONE][MOVEMENT])
                 return Move(MOVE_ANT, dronePath, None)
 
         # Moves all worker ants
@@ -234,7 +243,7 @@ class AIPlayer(Player):
                     for food in foods:
                         distToAnthill = stepsToReach(currentState, self.myAnthill.coords, food.coords)
                         distToTunnel = stepsToReach(currentState, self.myTunnel.coords, food.coords)
-                        #myFood = food
+                        #closestFood = food
                         bestDist = distToTunnel
                         # if distToAnthill < distToTunnel:
                         #     if distToAnthill < bestDist:
