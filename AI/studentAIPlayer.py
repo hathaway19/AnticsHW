@@ -152,35 +152,6 @@ class AIPlayer(Player):
             self.myTunnel = getConstrList(currentState, me, (TUNNEL,))[0]
         if self.myAnthill == None:
             self.myAnthill = getConstrList(currentState, me, (ANTHILL,))[0]
-        # Todo: Get rid of this when you place other code for worker ant
-        if (self.myFood == None):
-            foods = getConstrList(currentState, None, (FOOD,))
-            self.myFood = foods[0]
-            # find the food closest to the tunnel
-            bestDistSoFar = 1000  # i.e., infinity
-            for food in foods:
-                dist = stepsToReach(currentState, self.myTunnel.coords, food.coords)
-                if (dist < bestDistSoFar):
-                    self.myFood = food
-                    bestDistSoFar = dist
-        #if self.myFoodForTunnel == None or self.myFoodForAnthill == None:
-            # foods = getConstrList(currentState, None, (FOOD,))
-            # self.myFoodForTunnel = foods[0]
-            # self.myFoodForAnthill = foods[1]
-            # # find the food closest to the tunnel
-            # bestDistToTunnel = 1000  # i.e., infinity
-            # bestDistToAnthill = 1000
-            # for food in foods:
-            #     distToAnthill = stepsToReach(currentState, self.myAnthill.coords, food.coords)
-            #     distToTunnel = stepsToReach(currentState, self.myTunnel.coords, food.coords)
-            #
-            #     if distToAnthill < bestDistToAnthill:
-            #         self.myFoodForAnthill = food
-            #         bestDistToAnthill = distToAnthill
-            #     if distToTunnel < bestDistToTunnel:
-            #         self.myFoodForTunnel = food
-            #         bestDistToTunnel = distToTunnel
-
 
         # If all the workers have moved, we're done (checks to see if last worker has moved)
         lastWorker = getAntList(currentState, me,(WORKER,))[numOfWorkerAnts - 1]
@@ -193,9 +164,9 @@ class AIPlayer(Player):
 
         # todo: implement when worker path code is fixed
         # Creates enough workers to have 2 on the board (if we have food and anthill empty)
-        # if myInv.foodCount > 0 and numOfWorkerAnts < 2:
-        #     if (getAntAt(currentState, myInv.getAnthill().coords) is None):
-        #         return Move(BUILD, [myInv.getAnthill().coords], WORKER)
+        if myInv.foodCount > 0 and numOfWorkerAnts < 2:
+            if (getAntAt(currentState, myInv.getAnthill().coords) is None):
+                return Move(BUILD, [myInv.getAnthill().coords], WORKER)
         #Creates drones if we already have enough workers
         if (myInv.foodCount > 2):
             if (getAntAt(currentState, myInv.getAnthill().coords) is None):
@@ -226,52 +197,49 @@ class AIPlayer(Player):
         # Moves all worker ants
         for worker in myWorkers:
             if not worker.hasMoved:
+                # Move to anthill or tunnel if worker is carrying food
                 if worker.carrying:
+                    #todo: implement code so ants don't collide on way back
+                    #todo: probally should write this in a different method
                     path = createPathToward(currentState, worker.coords,
                                             self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-                    # if (stepsToReach(currentState,worker.coords,self.myAnthill.coords)
-                    #         < (stepsToReach(currentState,worker.coords,self.myTunnel.coords))):
-                    #     path = createPathToward(currentState, worker.coords,
-                    #                             self.myAnthill.coords, UNIT_STATS[WORKER][MOVEMENT])
-                    # else:
-                    #     path = createPathToward(currentState, worker.coords,
-                    #                             self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-
+                    if (stepsToReach(currentState,worker.coords,self.myAnthill.coords)
+                            < (stepsToReach(currentState,worker.coords,self.myTunnel.coords))):
+                        path = createPathToward(currentState, worker.coords,
+                                                self.myAnthill.coords, UNIT_STATS[WORKER][MOVEMENT])
+                    else:
+                        path = createPathToward(currentState, worker.coords,
+                                                self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
+                # Move to closest food if worker isn't carrying food
                 else:
                     foods = getConstrList(currentState, None, (FOOD,))
-                    bestDist = 1000
-                    myFood = None
+                    closestFood = getConstrList(currentState, None, (FOOD,))[0]
+                    #print "Ant, closest food: ", worker.coords, closestFood.coords
                     for food in foods:
-                        distToAnthill = stepsToReach(currentState, self.myAnthill.coords, food.coords)
-                        distToTunnel = stepsToReach(currentState, self.myTunnel.coords, food.coords)
-                        #closestFood = food
-                        bestDist = distToTunnel
-                        # if distToAnthill < distToTunnel:
-                        #     if distToAnthill < bestDist:
-                        #         myFood = food
-                        #         bestDist = distToAnthill
-                        # else:
-                        #     if distToTunnel < bestDist:
-                        #         myFood = food
-                        #         bestDist = distToTunnel
+                        distToClosestFood = stepsToReach(currentState, worker.coords, closestFood.coords)
+                        distToCurrentFood = stepsToReach(currentState, worker.coords, food.coords)
+
+                        if distToCurrentFood < distToClosestFood:
+                            closestFood = food
 
                     path = createPathToward(currentState, worker.coords,
-                                            self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
+                                            closestFood.coords, UNIT_STATS[WORKER][MOVEMENT])
+
+                    #todo: fix code so ants don't take random moves each time
+                    # To avoid collisions with other ants, checks to see if ant on current path
+                    for coord in path:
+                        ant = getAntAt(currentState, coord)
+                        # Skips the coordinate with the current ant
+                        if coord == path:
+                            continue
+                        # When there is an ant on the current path, move randomly
+                        if ant is not None:
+                            options = listAllMovementPaths(currentState, worker.coords,
+                                                           UNIT_STATS[WORKER][MOVEMENT])
+                            path = random.choice(options)
+
                     return Move(MOVE_ANT, path, None)
-
-        # # if the worker has food, move toward tunnel
-        # if (myWorker.carrying):
-        #     path = createPathToward(currentState, myWorker.coords,
-        #                             self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-        #     return Move(MOVE_ANT, path, None)
-        #
-        # # if the worker has no food, move toward food
-        # else:
-        #     path = createPathToward(currentState, myWorker.coords,
-        #                             self.myFood.coords, UNIT_STATS[WORKER][MOVEMENT])
-        #     return Move(MOVE_ANT, path, None)
-
     
     ##
     #getAttack
