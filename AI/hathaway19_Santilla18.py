@@ -1,4 +1,4 @@
-  # -*- coding: latin-1 -*-
+# -*- coding: latin-1 -*-
 import random
 import sys
 sys.path.append("..")  #so other modules can be found in parent dir
@@ -9,6 +9,18 @@ from Ant import UNIT_STATS
 from Move import Move
 from GameState import addCoords
 from AIPlayerUtils import *
+
+##
+# Authors: Justin Hathaway, Briahna Santillana
+#
+# Assignment: Homework #1: Heuristic AI
+#
+# Due Date: January 30th, 2017
+#
+# Description: This class interacts with the rest of the game
+# to make an effective heuristic AI. This AI builds workers to gather
+# food and pumps out drones to attack the enemy Queen and enemy drones.
+##
 
 ##
 #AIPlayer
@@ -209,6 +221,7 @@ class AIPlayer(Player):
                                         UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
 
+
     ##
     #getAttack
     #Description: The getAttack method is called on the player whenever an ant completes 
@@ -244,16 +257,20 @@ class AIPlayer(Player):
         #method template, not implemented
         pass
 
+
 ##
-#calcAntMove
-#Description: This helper method sets the path for a given ant to take. It changes
+# calcAntMove
+#
+# Description: This helper method sets the path for a given ant to take. It changes
 # the path if a collision with another ant is found.
-#Parameters:
+#
+# Parameters:
 #   currentState - The current game state
 #   antToMove - The ant that the path is being created for
 #   endDestination - The coordinate that the ant needs to end up on
 #   amountOfMovement - The amount of moves the given ant can move in a turn
-#Returns: A path (set of coordinates) for the ant to move to ((int,int),(int,int))
+#
+# Returns: A path (set of coordinates) for the ant to move to ((int,int),(int,int))
 ##
 def calcAntMove(currentState, antToMove, endDestination, amountOfMovement):
     # Initial path for the ant to move towards
