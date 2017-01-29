@@ -237,12 +237,24 @@ class AIPlayer(Player):
     #
     #Parameters:
     #   hasWon - True if the player has won the game, False if the player lost. (Boolean)
-    #
+    ##
     def registerWin(self, hasWon):
         #method template, not implemented
         pass
 
+##
+#calcAntMove
+#Description: This helper method sets the path for a given ant to take. It changes
+# the path if a collision with another ant is found.
+#Parameters:
+#   currentState - The current game state
+#   antToMove - The ant that the path is being created for
+#   endDestination - The coordinate that the ant needs to end up on
+#   amountOfMovement - The amount of moves the given ant can move in a turn
+#Returns: A path (set of coordinates) for the ant to move to ((int,int),(int,int))
+##
 def calcAntMove(currentState, antToMove, endDestination, amountOfMovement):
+    # Initial path for the ant to move towards
     path = createPathToward(currentState, antToMove.coords,
                             endDestination, amountOfMovement)
     # If no valid path towards destination was found, select random move
@@ -254,17 +266,16 @@ def calcAntMove(currentState, antToMove, endDestination, amountOfMovement):
     else:
         # To avoid collisions with other ants, checks to see if ant on current path
         for coord in path:
-            # if (getAntAt(currentState, coord) == None):
-
             ant = getAntAt(currentState, coord)
             # Skips the coordinate with the current ant
             if coord == antToMove.coords:
                 continue
             # When there is an ant on the current path, move randomly
             if ant is not None:
-                print "ant", ant
+                # Looks at all the legal moves for the ant, picks a random one
                 options = listAllMovementPaths(currentState, antToMove.coords,
                                                amountOfMovement)
                 path = random.choice(options)
                 break;
+    # Returns the path for the ant to take
     return path;
