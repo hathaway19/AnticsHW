@@ -10,7 +10,6 @@ from Move import Move
 from GameState import addCoords
 from AIPlayerUtils import *
 
-
 ##
 #AIPlayer
 #Description: The responsbility of this class is to interact with the game by
@@ -20,8 +19,8 @@ from AIPlayerUtils import *
 #Variables:
 #   playerId - The id of the player.
 ##
-class AIPlayer(Player):
 
+class AIPlayer(Player):
     #__init__
     #Description: Creates a new Player
     #
@@ -29,12 +28,8 @@ class AIPlayer(Player):
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        #Called it a temp name for now
         super(AIPlayer,self).__init__(inputPlayerId, "Drone_AI")
-        #Variables to store coordinates of the agent's food, tunnel, and anthill
-        # self.myFoodForTunnel = None
-        # self.myFoodForAnthill = None
-        self.myFood = None
+        #Variables to store our tunnel and anthill
         self.myTunnel = None
         self.myAnthill = None
     
@@ -61,15 +56,8 @@ class AIPlayer(Player):
     #       If setup phase 2: list of two 2-tuples of ints -> [(x1,y1), (x2,y2)]
     ##
     def getPlacement(self, currentState):
-        self.myFood = None
-        self.myFoodForTunnel = None
-        self.myFoodForAnthill = None
-        self.myTunnel = None
-        self.myAnthill = None
-
         # Finds out which player ID is your opponent
         enemy = (currentState.whoseTurn + 1) % 2
-
         # Variables to hold coordinates of enemy constructs
         enemyTunnelCoords = getConstrList(currentState,enemy,(TUNNEL,))[0].coords
         enemyAnthillCoords = getConstrList(currentState,enemy,(ANTHILL,))[0].coords
@@ -78,7 +66,7 @@ class AIPlayer(Player):
         if currentState.phase == SETUP_PHASE_1:
             # Indexes 0-1: Anthill, tunnel
             # Indexes 2-10: Grass
-            return [(0,0), (8, 2),
+            return [(1,0), (8, 2),
                     (0,2), (1,2), (2,1), (7,3), \
                     (0,3), (1,1), (8,3), \
                     (0,1), (9,3) ];
@@ -86,7 +74,6 @@ class AIPlayer(Player):
         elif currentState.phase == SETUP_PHASE_2:
             numToPlace = 2
             foodLocations = []
-
             #Goes through each piece of food to find an optimal place to put it
             for i in range(0, numToPlace):
                 LargestDistanceIndex = [(-1,-1)] # Placeholder coordinate value
@@ -113,9 +100,9 @@ class AIPlayer(Player):
         # Shouldn't reach this point
         else:
             return None
-    
+
     ##
-    #getMovee
+    #getMove
     #Description: The getMove method corresponds to the play phase of the game 
     #and requests from the player a Move object. All types are symbolic 
     #constants which can be referred to in Constants.py. The move object has a 
@@ -135,16 +122,19 @@ class AIPlayer(Player):
     #Return: Move(moveType [int], coordList [list of 2-tuples of ints], buildType [int]
     ##
     def getMove(self, currentState):
-        # Useful pointers
+        # Variables to hold our inventory, our player ID, and the opponent's player ID
         myInv = getCurrPlayerInventory(currentState)
         me = currentState.whoseTurn
         enemy = (currentState.whoseTurn + 1) % 2
-
         # Variable to hold total number of ally worker ants
         numOfWorkerAnts = len(getAntList(currentState, me, (WORKER,)))
-
         # List of all ally worker ants
         myWorkers = getAntList(currentState, me, (WORKER,))
+        # Variables to hold list of ally drones
+        myDrones = getAntList(currentState, me, (DRONE,))
+        # Variables to hold coordinates of enemy queen and anthill coordinates
+        enemyQueenCoords = getAntList(currentState, enemy, (QUEEN,))[0].coords
+        enemyAnthillCoords = getConstrList(currentState, enemy, (ANTHILL,))[0].coords
 
         # the first time this method is called, the food and tunnel locations
         # need to be recorded in their respective instance variables
@@ -155,28 +145,21 @@ class AIPlayer(Player):
 
         # If all the workers have moved, we're done (checks to see if last worker has moved)
         lastWorker = getAntList(currentState, me,(WORKER,))[numOfWorkerAnts - 1]
-        if (lastWorker.hasMoved):
+        if lastWorker.hasMoved:
             return Move(END, None, None)
 
         # if the queen is on the anthill move her
         if myInv.getQueen().coords == myInv.getAnthill().coords:
-            return Move(MOVE_ANT, [myInv.getQueen().coords, (1, 0)], None)
+            return Move(MOVE_ANT, [myInv.getQueen().coords, (0, 0)], None)
 
-        # todo: implement when worker path code is fixed
         # Creates enough workers to have 2 on the board (if we have food and anthill empty)
         if myInv.foodCount > 0 and numOfWorkerAnts < 2:
-            if (getAntAt(currentState, myInv.getAnthill().coords) is None):
+            if getAntAt(currentState, myInv.getAnthill().coords) is None:
                 return Move(BUILD, [myInv.getAnthill().coords], WORKER)
-        #Creates drones if we already have enough workers
-        if (myInv.foodCount > 2):
-            if (getAntAt(currentState, myInv.getAnthill().coords) is None):
+        # Creates drones if we already have enough workers
+        if myInv.foodCount > 2:
+            if getAntAt(currentState, myInv.getAnthill().coords) is None:
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
-
-        # Variables to hold list of ally drones
-        myDrones = getAntList(currentState, me, (DRONE,))
-        # Variables to hold coordinates of enemy queen and anthill coordinates
-        enemyQueenCoords = getAntList(currentState, enemy, (QUEEN,))[0].coords
-        enemyAnthillCoords = getConstrList(currentState, enemy, (ANTHILL,))[0].coords
 
         # Commands all drones to move to enemy queen coordinates
         for drone in myDrones:
@@ -199,23 +182,20 @@ class AIPlayer(Player):
             if not worker.hasMoved:
                 # Move to anthill or tunnel if worker is carrying food
                 if worker.carrying:
-                    #todo: implement code so ants don't collide on way back
-                    #todo: probally should write this in a different method
-                    path = createPathToward(currentState, worker.coords,
-                                            self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
                     if (stepsToReach(currentState,worker.coords,self.myAnthill.coords)
                             < (stepsToReach(currentState,worker.coords,self.myTunnel.coords))):
-                        path = createPathToward(currentState, worker.coords,
-                                                self.myAnthill.coords, UNIT_STATS[WORKER][MOVEMENT])
+
+                        path = calcAntMove(currentState, worker, self.myAnthill.coords,
+                                           UNIT_STATS[WORKER][MOVEMENT])
                     else:
-                        path = createPathToward(currentState, worker.coords,
-                                                self.myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
+                        path = calcAntMove(currentState, worker, self.myTunnel.coords,
+                                           UNIT_STATS[WORKER][MOVEMENT])
+
                     return Move(MOVE_ANT, path, None)
                 # Move to closest food if worker isn't carrying food
                 else:
                     foods = getConstrList(currentState, None, (FOOD,))
                     closestFood = getConstrList(currentState, None, (FOOD,))[0]
-                    #print "Ant, closest food: ", worker.coords, closestFood.coords
                     for food in foods:
                         distToClosestFood = stepsToReach(currentState, worker.coords, closestFood.coords)
                         distToCurrentFood = stepsToReach(currentState, worker.coords, food.coords)
@@ -223,24 +203,10 @@ class AIPlayer(Player):
                         if distToCurrentFood < distToClosestFood:
                             closestFood = food
 
-                    path = createPathToward(currentState, worker.coords,
-                                            closestFood.coords, UNIT_STATS[WORKER][MOVEMENT])
-
-                    #todo: fix code so ants don't take random moves each time
-                    # To avoid collisions with other ants, checks to see if ant on current path
-                    for coord in path:
-                        ant = getAntAt(currentState, coord)
-                        # Skips the coordinate with the current ant
-                        if coord == path:
-                            continue
-                        # When there is an ant on the current path, move randomly
-                        if ant is not None:
-                            options = listAllMovementPaths(currentState, worker.coords,
-                                                           UNIT_STATS[WORKER][MOVEMENT])
-                            path = random.choice(options)
-
+                    path = calcAntMove(currentState, worker, closestFood.coords,
+                                        UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
-    
+
     ##
     #getAttack
     #Description: The getAttack method is called on the player whenever an ant completes 
@@ -275,3 +241,30 @@ class AIPlayer(Player):
     def registerWin(self, hasWon):
         #method template, not implemented
         pass
+
+def calcAntMove(currentState, antToMove, endDestination, amountOfMovement):
+    path = createPathToward(currentState, antToMove.coords,
+                            endDestination, amountOfMovement)
+    # If no valid path towards destination was found, select random move
+    # (only lists ants current coordinate)
+    if len(path) == 1:
+        options = listAllMovementPaths(currentState, antToMove.coords,
+                                       amountOfMovement)
+        path = random.choice(options)
+    else:
+        # To avoid collisions with other ants, checks to see if ant on current path
+        for coord in path:
+            # if (getAntAt(currentState, coord) == None):
+
+            ant = getAntAt(currentState, coord)
+            # Skips the coordinate with the current ant
+            if coord == antToMove.coords:
+                continue
+            # When there is an ant on the current path, move randomly
+            if ant is not None:
+                print "ant", ant
+                options = listAllMovementPaths(currentState, antToMove.coords,
+                                               amountOfMovement)
+                path = random.choice(options)
+                break;
+    return path;
