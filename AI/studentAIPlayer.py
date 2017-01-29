@@ -19,7 +19,6 @@ from AIPlayerUtils import *
 #Variables:
 #   playerId - The id of the player.
 ##
-
 class AIPlayer(Player):
     #__init__
     #Description: Creates a new Player
@@ -66,7 +65,7 @@ class AIPlayer(Player):
         if currentState.phase == SETUP_PHASE_1:
             # Indexes 0-1: Anthill, tunnel
             # Indexes 2-10: Grass
-            return [(1,0), (8, 2),
+            return [(0,0), (8, 2),
                     (0,2), (1,2), (2,1), (7,3), \
                     (0,3), (1,1), (8,3), \
                     (0,1), (9,3) ];
@@ -135,6 +134,8 @@ class AIPlayer(Player):
         # Variables to hold coordinates of enemy queen and anthill coordinates
         enemyQueenCoords = getAntList(currentState, enemy, (QUEEN,))[0].coords
         enemyAnthillCoords = getConstrList(currentState, enemy, (ANTHILL,))[0].coords
+        # Variable to hold food
+        foods = getConstrList(currentState, None, (FOOD,))
 
         # the first time this method is called, the food and tunnel locations
         # need to be recorded in their respective instance variables
@@ -148,9 +149,15 @@ class AIPlayer(Player):
         if lastWorker.hasMoved:
             return Move(END, None, None)
 
-        # if the queen is on the anthill move her
-        if myInv.getQueen().coords == myInv.getAnthill().coords:
-            return Move(MOVE_ANT, [myInv.getQueen().coords, (0, 0)], None)
+        rndNum = random.randint(0, 1)
+        if rndNum == 0:
+            queenPath = createPathToward(currentState, myInv.getQueen().coords,
+                                     (0,1),UNIT_STATS[QUEEN][MOVEMENT])
+        else:
+            queenPath = createPathToward(currentState, myInv.getQueen().coords,
+                                     (1,1),UNIT_STATS[QUEEN][MOVEMENT])
+        if not myInv.getQueen().hasMoved:
+            return Move(MOVE_ANT, queenPath, None)
 
         # Creates enough workers to have 2 on the board (if we have food and anthill empty)
         if myInv.foodCount > 0 and numOfWorkerAnts < 2:
@@ -194,7 +201,6 @@ class AIPlayer(Player):
                     return Move(MOVE_ANT, path, None)
                 # Move to closest food if worker isn't carrying food
                 else:
-                    foods = getConstrList(currentState, None, (FOOD,))
                     closestFood = getConstrList(currentState, None, (FOOD,))[0]
                     for food in foods:
                         distToClosestFood = stepsToReach(currentState, worker.coords, closestFood.coords)
