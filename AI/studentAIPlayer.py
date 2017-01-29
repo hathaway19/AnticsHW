@@ -67,8 +67,8 @@ class AIPlayer(Player):
             # Indexes 2-10: Grass
             return [(0,0), (8, 2),
                     (0,2), (1,2), (2,1), (7,3), \
-                    (0,3), (1,1), (8,3), \
-                    (0,1), (9,3) ];
+                    (0,3), (1,3), (8,3), \
+                    (2,2), (9,3) ];
         # Setup phase for placing the opponent's food (tries to place it far away from tunnel and anthill)
         elif currentState.phase == SETUP_PHASE_2:
             numToPlace = 2
@@ -164,7 +164,7 @@ class AIPlayer(Player):
             if getAntAt(currentState, myInv.getAnthill().coords) is None:
                 return Move(BUILD, [myInv.getAnthill().coords], WORKER)
         # Creates drones if we already have enough workers
-        if myInv.foodCount > 2:
+        elif myInv.foodCount >= 2:
             if getAntAt(currentState, myInv.getAnthill().coords) is None:
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
 
