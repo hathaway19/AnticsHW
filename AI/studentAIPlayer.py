@@ -158,7 +158,6 @@ class AIPlayer(Player):
                                      (1,1),UNIT_STATS[QUEEN][MOVEMENT])
         if not myInv.getQueen().hasMoved:
             return Move(MOVE_ANT, queenPath, None)
-
         # Creates enough workers to have 2 on the board (if we have food and anthill empty)
         if myInv.foodCount > 0 and numOfWorkerAnts < 2:
             if getAntAt(currentState, myInv.getAnthill().coords) is None:
@@ -167,7 +166,6 @@ class AIPlayer(Player):
         elif myInv.foodCount >= 2:
             if getAntAt(currentState, myInv.getAnthill().coords) is None:
                 return Move(BUILD, [myInv.getAnthill().coords], DRONE)
-
         # Commands all drones to move to enemy queen coordinates
         for drone in myDrones:
             # Only moves the selected drone if it hasn't moved or if it's not on the enemy hill
@@ -183,7 +181,6 @@ class AIPlayer(Player):
                         dronePath = createPathToward(currentState, drone.coords,
                                                     enemyQueenCoords, UNIT_STATS[DRONE][MOVEMENT])
                     return Move(MOVE_ANT, dronePath, None)
-
         # Moves all worker ants
         for worker in myWorkers:
             if not worker.hasMoved:
@@ -197,7 +194,6 @@ class AIPlayer(Player):
                     else:
                         path = calcAntMove(currentState, worker, self.myTunnel.coords,
                                            UNIT_STATS[WORKER][MOVEMENT])
-
                     return Move(MOVE_ANT, path, None)
                 # Move to closest food if worker isn't carrying food
                 else:
@@ -220,8 +216,7 @@ class AIPlayer(Player):
     #because there is no strategic advantage from withholding an attack. The AIPlayer 
     #is passed a copy of the state which again contains the board and also a clone of 
     #the attacking ant. The player is also passed a list of coordinate tuples which 
-    #represent valid locations for attack. Hint: a random AI can simply return one of 
-    #these coordinates for a valid attack. 
+    #represent valid locations for attack.
     #
     #Parameters:
     #   currentState - The current state of the game at the time the Game is requesting 
@@ -233,7 +228,8 @@ class AIPlayer(Player):
     #Return: A coordinate that matches one of the entries of enemyLocations. ((int,int))
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
-        return enemyLocations[random.randint(0, len(enemyLocations) - 1)] #attacks a random enemy
+        #attacks a random enemy using enemy coordinates for valid attacks
+        return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
         
     ##
     #registerWin
