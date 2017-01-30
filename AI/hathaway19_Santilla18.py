@@ -101,7 +101,8 @@ class AIPlayer(Player):
                                     and (i, j) not in foodLocations:
                                 # Adds distance from tunnel and anthill
                                 currentDistance = stepsToReach(currentState,(i, j), enemyTunnelCoords) \
-                                                                + stepsToReach(currentState,(i, j),enemyAnthillCoords)
+                                                                + stepsToReach(currentState,(i, j),
+                                                                               enemyAnthillCoords)
                                 # Keeps largest distance
                                 if currentDistance > LargestDistance:
                                     # Replaces values for current largest distance
@@ -219,8 +220,10 @@ class AIPlayer(Player):
                 else:
                     closestFood = getConstrList(currentState, None, (FOOD,))[0]
                     for food in foods:
-                        distToClosestFood = stepsToReach(currentState, worker.coords, closestFood.coords)
-                        distToCurrentFood = stepsToReach(currentState, worker.coords, food.coords)
+                        distToClosestFood = stepsToReach(currentState, worker.coords,
+                                                         closestFood.coords)
+                        distToCurrentFood = stepsToReach(currentState, worker.coords,
+                                                         food.coords)
 
                         if distToCurrentFood < distToClosestFood:
                             closestFood = food
