@@ -40,7 +40,7 @@ class AIPlayer(Player):
     ##
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId, "Drone_AI")
-        #Variables to store our tunnel and anthill
+        # Variables to store our tunnel and anthill
         self.myTunnel = None
         self.myAnthill = None
     
@@ -73,7 +73,8 @@ class AIPlayer(Player):
         enemyTunnelCoords = getConstrList(currentState,enemy,(TUNNEL,))[0].coords
         enemyAnthillCoords = getConstrList(currentState,enemy,(ANTHILL,))[0].coords
 
-        # Setup phase for placing anthill, grass, and tunnel (hardcoded in for optimal chance of winning)
+        # Setup phase for placing anthill, grass, and tunnel
+        # (hardcoded in for optimal chance of winning)
         if currentState.phase == SETUP_PHASE_1:
             # Indexes 0-1: Anthill, tunnel
             # Indexes 2-10: Grass
@@ -81,11 +82,12 @@ class AIPlayer(Player):
                     (0,2), (1,2), (2,1), (7,3), \
                     (0,3), (1,3), (8,3), \
                     (2,2), (9,3) ];
-        # Setup phase for placing the opponent's food (tries to place it far away from tunnel and anthill)
+        # Setup phase for placing the opponent's food
+        # (tries to place it far away from tunnel and anthill)
         elif currentState.phase == SETUP_PHASE_2:
             numToPlace = 2
             foodLocations = []
-            #Goes through each piece of food to find an optimal place to put it
+            # Goes through each piece of food to find an optimal place to put it
             for i in range(0, numToPlace):
                 LargestDistanceIndex = [(-1,-1)] # Placeholder coordinate value
                 LargestDistance = -100 # Placeholder value (can't be a negative distance)
@@ -95,12 +97,13 @@ class AIPlayer(Player):
                     for i in range(BOARD_LENGTH):
                         for j in range(6,10):
                             # Only searches locations that haven't already been added or have placements on them
-                            if currentState.board[i][j].constr == None and (i, j) not in foodLocations:
+                            if currentState.board[i][j].constr == None \
+                                    and (i, j) not in foodLocations:
                                 # Adds distance from tunnel and anthill
                                 currentDistance = stepsToReach(currentState,(i, j), enemyTunnelCoords) \
                                                                 + stepsToReach(currentState,(i, j),enemyAnthillCoords)
                                 # Keeps largest distance
-                                if  currentDistance > LargestDistance:
+                                if currentDistance > LargestDistance:
                                     # Replaces values for current largest distance
                                     LargestDistance = currentDistance
                                     LargestDistanceIndex = (i,j)
@@ -111,6 +114,7 @@ class AIPlayer(Player):
         # Shouldn't reach this point
         else:
             return None
+
 
     ##
     #getMove
@@ -161,6 +165,8 @@ class AIPlayer(Player):
         if lastWorker.hasMoved:
             return Move(END, None, None)
 
+        # Generates a random number between 0 and 1 to move Queen back and forth
+        # Helps insure that other ants don't collide as often
         rndNum = random.randint(0, 1)
         if rndNum == 0:
             queenPath = createPathToward(currentState, myInv.getQueen().coords,
@@ -170,6 +176,7 @@ class AIPlayer(Player):
                                      (1,1),UNIT_STATS[QUEEN][MOVEMENT])
         if not myInv.getQueen().hasMoved:
             return Move(MOVE_ANT, queenPath, None)
+
         # Creates enough workers to have 2 on the board (if we have food and anthill empty)
         if myInv.foodCount > 0 and numOfWorkerAnts < 2:
             if getAntAt(currentState, myInv.getAnthill().coords) is None:
@@ -200,10 +207,11 @@ class AIPlayer(Player):
                 if worker.carrying:
                     if (stepsToReach(currentState,worker.coords,self.myAnthill.coords)
                             < (stepsToReach(currentState,worker.coords,self.myTunnel.coords))):
-
+                        # Checks the path to make sure there aren't any collisions
                         path = calcAntMove(currentState, worker, self.myAnthill.coords,
                                            UNIT_STATS[WORKER][MOVEMENT])
                     else:
+                        # Checks the path to make sure there aren't any collisions
                         path = calcAntMove(currentState, worker, self.myTunnel.coords,
                                            UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
@@ -217,6 +225,7 @@ class AIPlayer(Player):
                         if distToCurrentFood < distToClosestFood:
                             closestFood = food
 
+                    # Checks the path to make sure there aren't any collisions
                     path = calcAntMove(currentState, worker, closestFood.coords,
                                         UNIT_STATS[WORKER][MOVEMENT])
                     return Move(MOVE_ANT, path, None)
