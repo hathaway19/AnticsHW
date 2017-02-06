@@ -39,7 +39,7 @@ class AIPlayer(Player):
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        super(AIPlayer,self).__init__(inputPlayerId, "Drone_AI")
+        super(AIPlayer,self).__init__(inputPlayerId, "ADrone_AI")
         # Variables to store our tunnel and anthill
         self.myTunnel = None
         self.myAnthill = None
@@ -67,12 +67,6 @@ class AIPlayer(Player):
     #       If setup phase 2: list of two 2-tuples of ints -> [(x1,y1), (x2,y2)]
     ##
     def getPlacement(self, currentState):
-        # Finds out which player ID is your opponent
-        enemy = (currentState.whoseTurn + 1) % 2
-        # Variables to hold coordinates of enemy constructs
-        enemyTunnelCoords = getConstrList(currentState,enemy,(TUNNEL,))[0].coords
-        enemyAnthillCoords = getConstrList(currentState,enemy,(ANTHILL,))[0].coords
-
         # Setup phase for placing anthill, grass, and tunnel
         # (hardcoded in for optimal chance of winning)
         if currentState.phase == SETUP_PHASE_1:
@@ -85,6 +79,13 @@ class AIPlayer(Player):
         # Setup phase for placing the opponent's food
         # (tries to place it far away from tunnel and anthill)
         elif currentState.phase == SETUP_PHASE_2:
+
+            # Finds out which player ID is your opponent
+            enemy = (currentState.whoseTurn + 1) % 2
+            # Variables to hold coordinates of enemy constructs
+            enemyTunnelCoords = getConstrList(currentState, enemy, (TUNNEL,))[0].coords
+            enemyAnthillCoords = getConstrList(currentState, enemy, (ANTHILL,))[0].coords
+
             numToPlace = 2
             foodLocations = []
             # Goes through each piece of food to find an optimal place to put it
